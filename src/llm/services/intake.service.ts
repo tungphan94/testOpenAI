@@ -18,8 +18,6 @@ export function loadMedicalSchema(): any {
   return JSON.parse(fs.readFileSync(p, "utf-8"));
 }
 
-
-
 export function buildSystemPrompt(is_init: boolean): string 
 {
     if(is_init){

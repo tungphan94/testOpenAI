@@ -10,6 +10,11 @@ export class MedicalIntakeService
         return this.stateRepo.create({tenantId: null});
     }
 
+    async SaveConversationState(state: ConversationState | null)
+    {
+      this.stateRepo?.save(state)
+    }
+
      async getConversationState(conversationId: string): Promise<ConversationState | null>
      {
         return this.stateRepo?.get(conversationId);

@@ -13,6 +13,8 @@ export async function chat(req: Request, res: Response) {
       return res.status(400).json({error: "message is required"});
     }
     let state = await  medicalService.getConversationState(conversation_id);
+    // const json = JSON.stringify(state);
+    // console.log(json);
     let know_state = buildStateKnow(state);
     let result = await call_intake_llm(know_state, message);
     if(result == null){
@@ -30,8 +32,11 @@ export async function chat(req: Request, res: Response) {
         tenant_id), 
       result);
 
-    const json = JSON.stringify(state);
-    console.log(json);
+
+
+    // const json = JSON.stringify(state);
+    // console.log(json);
+    medicalService.SaveConversationState(state)
     //merge to database
     return res.status(200).json(result);
   } catch (err) {

@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model ConversationState {
+  conversation_id     String   @id
+  tenant_id           String?
+  extracted           Json     @default("{}")
+  confirmed_fields    Json     @default("[]")
+  next_question_field String?
+  staff_note          String?
+  is_completed        Boolean  @default(false)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  @@map("conversation_state")
+}
