@@ -1,18 +1,11 @@
 import { pool } from "../db";
-
-import Database from "better-sqlite3";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-const db = new Database("./data/dev.db");
 const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || "file:.data/dev.db",
+  url: "file:./data/dev.db",
 });
 export const prisma = new PrismaClient({ adapter });
-
-console.log("DATABASE_URL =", process.env.DATABASE_URL);
-
 export type JsonObject = Record<string, any>;
-
 export interface ConversationState {
   conversation_id: string;
   tenant_id: string | null;
@@ -137,7 +130,7 @@ export class ConversationStateRepository
     async get(conversationId: string): Promise<ConversationState | null> 
     {
       try {
-        const row = await prisma.conversationState.findUnique({
+        const row = await prisma.conversationState_Prisma.findUnique({
           where: { conversation_id: conversationId },
           select: {
             conversation_id: true,
@@ -199,7 +192,7 @@ export class ConversationStateRepository
           throw new Error("conversation_id is required");
         }
         try {
-         await prisma.conversationState.upsert({
+         await prisma.conversationState_Prisma.upsert({
            where: { conversation_id: state.conversation_id },
            create: {
              conversation_id: state.conversation_id,
@@ -229,7 +222,7 @@ export class ConversationStateRepository
         staff_note: string | null;
         }): Promise<ConversationState | null> {
         try {
-          const updated = await prisma.conversationState.update({
+          const updated = await prisma.conversationState_Prisma.update({
           where: { conversation_id: conversationId },
           data: {
         // Nếu DB là Postgres JsonB: truyền JSON thẳng

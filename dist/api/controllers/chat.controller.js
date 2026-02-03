@@ -14,6 +14,8 @@ async function chat(req, res) {
             return res.status(400).json({ error: "message is required" });
         }
         let state = await MedicalIntakeService_1.medicalService.getConversationState(conversation_id);
+        // const json = JSON.stringify(state);
+        // console.log(json);
         let know_state = (0, buildStateKnow_2.buildStateKnow)(state);
         let result = await (0, intake_service_1.call_intake_llm)(know_state, message);
         if (result == null) {
@@ -25,8 +27,9 @@ async function chat(req, res) {
         // console.log("Total time (ms):", t1 - t0); 
         // return res.status(200).json({status: test} );
         state = (0, buildStateKnow_2.mergeConversationStateMedical)(state ?? (0, ConversationStateRepository_1.createEmptyConversationState)(conversation_id, () => (0, buildStateKnow_1.createEmptyMedicalStateV1)(), tenant_id), result);
-        const json = JSON.stringify(state);
-        console.log(json);
+        // const json = JSON.stringify(state);
+        // console.log(json);
+        MedicalIntakeService_1.medicalService.SaveConversationState(state);
         //merge to database
         return res.status(200).json(result);
     }

@@ -13,7 +13,7 @@ generator client {
 }
 
 
-model ConversationState {
+model ConversationState_Prisma {
   conversation_id     String   @id
   tenant_id           String?
   extracted           Json     @default("{}")

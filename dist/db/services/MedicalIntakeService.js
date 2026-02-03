@@ -9,6 +9,9 @@ class MedicalIntakeService {
     async start() {
         return this.stateRepo.create({ tenantId: null });
     }
+    async SaveConversationState(state) {
+        this.stateRepo?.save(state);
+    }
     async getConversationState(conversationId) {
         return this.stateRepo?.get(conversationId);
     }

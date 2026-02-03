@@ -2,7 +2,6 @@ import express from "express";
 import chatRouter from "./api/routes/chat.route";
 import path from "path";
 import { fileURLToPath } from "url";
-
 const app = express();
 app.use(express.json({ type: ["application/json", "application/*+json"] }));
 app.use(express.urlencoded({ extended: true }));
