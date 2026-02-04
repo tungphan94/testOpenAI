@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.INTAKE_ORDER = void 0;
 exports.getNextIntakeField = getNextIntakeField;
+exports.isIntakeComplete = isIntakeComplete;
 exports.INTAKE_ORDER = [
     "red_flags",
     "chief_complaint",
@@ -18,4 +19,7 @@ function getNextIntakeField(confirmedFields) {
         }
     }
     return null;
+}
+function isIntakeComplete(confirmedFields) {
+    return getNextIntakeField(confirmedFields) === null;
 }

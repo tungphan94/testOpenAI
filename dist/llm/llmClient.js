@@ -42,6 +42,7 @@ async function llmJson(system, payload, response_schema, opts) {
             // const t = setTimeout(() => ac.abort(), timeoutMs);
             const res = await client.responses.create({
                 model,
+                service_tier: "priority",
                 input: [
                     { role: "system", content: system },
                     { role: "user", content: JSON.stringify(payload) },

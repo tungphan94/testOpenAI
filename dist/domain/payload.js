@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildPayload = buildPayload;
-function buildPayload(message, state, order) {
+function buildPayload(message, state, last_question, order) {
     return {
         user_message: message,
+        last_question: last_question,
         state_digest: {
             confirmed: state?.state_digest ?? {},
             confirmed_fields: state?.confirmed_fields ?? [],

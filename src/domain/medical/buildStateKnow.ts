@@ -188,6 +188,6 @@ export function mergeConversationStateMedical(
     next_question_field: llm.next_question_field,
     staff_note: llm.staff_note,
     updated_at: nowISO,
-    is_completed: llm.next_question_field == null,
+    is_completed: llm.completion_status === "completed",
   };
 }

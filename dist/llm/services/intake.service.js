@@ -18,27 +18,25 @@ function loadMedicalSchema() {
     const p = path_1.default.resolve(__dirname, "../schemas/medical/medical_intake.extracted.schema.json");
     return JSON.parse(fs_1.default.readFileSync(p, "utf-8"));
 }
-function buildSystemPrompt(is_init) {
-    if (is_init) {
-        const parts = [
-            system_medical_1.SYSTEM_MEDICAL_INTAKE_PROMPT,
-            developer_rules_intake_1.DEVELOPER_RULES_INTAKE_PROMPT
-        ];
-        return parts.join("\n\n");
+function buildSystemPrompt(state) {
+    let parts = [system_medical_1.SYSTEM_MEDICAL_INTAKE_PROMPT];
+    if (state == null) {
+        parts.push(developer_rules_intake_1.DEVELOPER_RULES_INTAKE_PROMPT);
     }
     else {
-        const parts = [
-            system_medical_1.SYSTEM_MEDICAL_INTAKE_PROMPT,
-            developer_rules_intake_1.CURRENT_CONVERSATION_STATE
-        ];
-        return parts.join("\n\n");
+        let count = state.confirmed_fields.length;
+        let all_count = intake_order_1.INTAKE_ORDER.length;
+        parts.push(developer_rules_intake_1.CURRENT_CONVERSATION_STATE);
+        if (all_count - count === 1) {
+            parts.push(developer_rules_intake_1.INTAKE_COMPLETION_RULE);
+        }
     }
+    return parts.join("\n\n");
 }
-async function call_intake_llm(state, message) {
+async function call_intake_llm(state, message, last_question) {
     try {
-        const is_init = state == null;
-        const payload = (0, payload_1.buildPayload)(message, state, intake_order_1.INTAKE_ORDER);
-        const systemPrompt = buildSystemPrompt(is_init);
+        const payload = (0, payload_1.buildPayload)(message, state, last_question, intake_order_1.INTAKE_ORDER);
+        const systemPrompt = buildSystemPrompt(state);
         return await (0, llmClient_1.llmJson)(systemPrompt, payload, medicalLlmOutput_1.medicalLlmOutputJsonSchema);
     }
     catch {

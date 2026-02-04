@@ -1,11 +1,26 @@
 import { MedicalStateV1 } from "./medical.extracted.types";
 
+type CompletionStatus =
+  | "in_progress"      // đang hỏi tiếp
+  | "completed"        // hoàn tất bình thường
+  | "emergency_stop"   // dừng do cấp cứu
+  | "handoff_required" // cần nhân viên tiếp nhận
+  | "error";           // lỗi hệ thống / fallback
+
+type EmergencyLevel =
+  | "immediate"   // gọi cấp cứu NGAY
+  | "urgent"      // cần khám gấp (hôm nay)
+  | "moderate";   // có nguy cơ, theo dõi sớm
+
 export interface MedicalLlmOutput {
   patch: PatchOp<MedicalStateV1>[];
   next_question: string | null;
   next_question_field: string | null;
   staff_note: string | null;
   confirmed_fields?: string[];
+  ui_message: string | null;
+  completion_status: CompletionStatus;
+  emergency_level: EmergencyLevel
 }
 
 export type PatchOp<T> =
@@ -27,6 +42,9 @@ export const medicalLlmOutputJsonSchema = {
       "next_question_field",
       "staff_note",
       "confirmed_fields",
+      "ui_message",
+      "completion_status",
+      "emergency_level"
     ],
     properties: {
       patch: {
@@ -127,8 +145,8 @@ export const medicalLlmOutputJsonSchema = {
           ],
         },
       },
-		next_question: {type: [ "string","null"] },
-		next_question_field: {
+		  next_question: {type: [ "string","null"] },
+		  next_question_field: {
 			type: ["string", "null"],
 			enum: [
 				"red_flags",
@@ -138,11 +156,11 @@ export const medicalLlmOutputJsonSchema = {
 				"past_history",
 				"medications",
 				"allergies",
-				null
+				"null"
 			],
-		},
-        staff_note: {type: "string"},
-        confirmed_fields: {
+		  },
+      staff_note: {type: "string"},
+      confirmed_fields: {
           type: "array",
           items: {
             type: "string",
@@ -156,6 +174,21 @@ export const medicalLlmOutputJsonSchema = {
               "allergies",
             ],
           },
+      },
+      ui_message: {type: [ "string","null"] },
+      completion_status: {
+        type: "string",
+        enum: [
+          "in_progress",
+          "completed",
+          "emergency_stop",
+          "handoff_required",
+          "error",
+        ]
+      },
+      emergency_level: {
+        type: ["string", "null"],
+        enum: ["immediate", "urgent", "moderate", "null"]
       },
     },
   },

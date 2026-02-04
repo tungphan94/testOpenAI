@@ -20,3 +20,9 @@ export function getNextIntakeField(
   }
   return null;
 }
+
+export function isIntakeComplete(
+  confirmedFields: string[]
+): boolean {
+  return getNextIntakeField(confirmedFields) === null;
+}

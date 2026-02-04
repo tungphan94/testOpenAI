@@ -47,6 +47,7 @@ export async function llmJson<T>(
       const res = await client.responses.create(
         {
           model,
+          service_tier: "priority",
           input: [
             { role: "system", content: system },
             { role: "user", content: JSON.stringify(payload) },
