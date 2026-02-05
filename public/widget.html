@@ -48,8 +48,9 @@
 
 <script>
   const qs = new URLSearchParams(location.search);
+  const domain = qs.get("domain") || ""
   const tenant = qs.get("tenant") || "default";
-  const title = qs.get("title") || "医療受付サポート";
+  const title = qs.get("title") || "AIアシスタント";
   const apiBase = qs.get("apiBase") || "";
   const lang = qs.get("lang") || "ja";
 
@@ -68,7 +69,6 @@
   }
   
   const SESSION_KEY = `med_widget_sid_${tenant}`;
-  const last_question_key = `med_widget_last_question_key_${tenant}`
 
   function getConversationId() {
     let cid = sessionStorage.getItem(SESSION_KEY);
@@ -111,7 +111,6 @@
     addMsg("me", text);
     inputEl.value = "";
     autoResize();
-    const last_question =  sessionStorage.getItem(last_question_key);
     sendBtn.disabled = true;
     const ph = addMsg("bot", "…");
     try {
@@ -119,17 +118,15 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          domain: domain,
           tenant_id: tenant,
           conversation_id: sessionId,
           message: text,
-          last_question: last_question,
         })
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const replyText = data.message ?? JSON.stringify(data);
-      sessionStorage.setItem(last_question_key, data.message);
-
       ph.querySelector(".bubble").textContent = replyText;
     } catch (e) {
       ph.querySelector(".bubble").textContent = "API呼び出しエラー: " + (e?.message || String(e));

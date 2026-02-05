@@ -1,33 +1,58 @@
 import { CompletionStatus,Conversation_flow } from "../../domain/medical/medicalLlmOutput";
+import {CommonIntent, DomainApp, MedicalIntent, FoodDrinkIntent,RealEstateIntent, DomainAnalysisResponse} from "../../domain/domain_analysis"
 
 type SessionTurn = {
   role: "user" | "assistant";
   text: string;
   ts: number;
+  domain: DomainApp
+  intent: CommonIntent
 };
 
+
 export type SessionState = {
-  conversation_flow : Conversation_flow;
   tenant_id: string;
+  domain: DomainApp | null; //linh vuc
+  intent: string | null; //HÀNH VI 
+  conversation_flow : Conversation_flow; //trang thái
   conversation_id: string;
-  confirmed_fields: string[];
   next_question_field: string | null;
-  off_topic_streak: number;
+  off_topic_streak: number; //Số lần liên tiếp user đi ngoài mục tiêu chính của flow hiện tại
   last_mode: CompletionStatus | null;
-  // optional: chống spam / out-of-order
   last_request_at: number;
   turns: SessionTurn[];
   max_turns: number;
-  updated_at: number; // idle TTL based on this
+  updated_at: number;
+  domain_state: {
+    medical?: any;
+    restaurant?: any;
+    real_estate?: any;
+  };
 };
 
-function addTurn(session: SessionState, role: "user" | "assistant", text: string) {
-  session.turns.push({ role, text, ts: Date.now() });
-  const max = session.max_turns ?? 20;
-  if (session.turns.length > max) {
-    session.turns.splice(0, session.turns.length - max);
-  }
-}
+export const DEFAULT_SESSION_STATE: SessionState = {
+  tenant_id: "",
+  domain: null,
+  intent: null,
+  conversation_flow: "domain_detection",
+  conversation_id: "",
+  next_question_field: null,
+  off_topic_streak: 0,
+  last_mode: null,
+  last_request_at: Date.now(),
+  updated_at: Date.now(),
+  turns: [],
+  max_turns: 50,
+  domain_state: {},
+};
+
+// function addTurn(session: SessionState, role: "user" | "assistant", text: string) {
+//   session.turns.push({ role, text, ts: Date.now() });
+//   const max = session.max_turns ?? 20;
+//   if (session.turns.length > max) {
+//     session.turns.splice(0, session.turns.length - max);
+//   }
+// }
 
 type SessionManagerOptions = {
   ttlMs?: number;              // default 30m
@@ -55,29 +80,15 @@ export class SessionManager {
     return `${tenant_id}:${conversation_id}`;
   }
 
-  /** Create or load session (touch updated_at) */
-  getOrCreate(tenant_id: string, conversation_id: string): SessionState {
-    const k = this.key(tenant_id, conversation_id);
-    const now = Date.now();
+  getOrDefault(tenant_id:string, conversation_id:string): SessionState{
+    const k = this.key(tenant_id, conversation_id); 
     let s = this.sessions.get(k);
-    if (s === undefined) {
-      this.ensureCapacity();
-      s = {
-        conversation_flow:"intake",
-        tenant_id,
-        conversation_id,
-        confirmed_fields: [],
-        next_question_field: "red_flags",
-        off_topic_streak: 0,
-        last_mode: null,
-        max_turns:10,
-        turns:[],
-        last_request_at: 0,
-        updated_at: now,
-      };
-      this.sessions.set(k, s);
-    } else {
-      s.updated_at = now;
+    if(s === undefined){
+      s = DEFAULT_SESSION_STATE;
+      s.tenant_id = tenant_id;
+      s.conversation_id = conversation_id;
+    }else{
+        s.updated_at = Date.now();
     }
     return s;
   }

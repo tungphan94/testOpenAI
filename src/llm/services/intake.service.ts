@@ -1,21 +1,10 @@
 import { llmJson } from "../llmClient";
-import { buildPayload} from '../../domain/payload'
+import { buildIntakePayload } from '../../domain/payload'
 import { medicalLlmOutputJsonSchema, MedicalLlmOutput } from "../../domain/medical/medicalLlmOutput"
 import {IntakeContext} from '../../domain/medical/medical.extracted.types'
 import { SYSTEM_MEDICAL_INTAKE_PROMPT } from "../prompts/medical/system_medical";
 import { DEVELOPER_RULES_INTAKE_PROMPT, CURRENT_CONVERSATION_STATE, INTAKE_COMPLETION_RULE } from "../prompts/medical/developer_rules_intake";
 import { INTAKE_ORDER } from '../prompts/medical/intake_order';
-
-import fs from "fs";
-import path from "path";
-
-export function loadMedicalSchema(): any {
-   const p = path.resolve(
-    __dirname,
-    "../schemas/medical/medical_intake.extracted.schema.json"
-  );
-  return JSON.parse(fs.readFileSync(p, "utf-8"));
-}
 
 export function buildSystemPrompt(state: IntakeContext | null): string 
 {
@@ -35,12 +24,11 @@ export function buildSystemPrompt(state: IntakeContext | null): string
 
 export async function call_intake_llm(
     state: IntakeContext | null, 
-    message: string,
-    last_question:string | null) 
+    message: string) 
     : Promise<MedicalLlmOutput | null>
 {
   try{
-    const payload = buildPayload(message, state,last_question, INTAKE_ORDER);
+    const payload = buildIntakePayload(message, state,INTAKE_ORDER);
     const systemPrompt = buildSystemPrompt(state);
     return await llmJson<MedicalLlmOutput>(
       systemPrompt,

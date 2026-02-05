@@ -1,6 +1,6 @@
 import { MedicalStateV1 } from "./medical.extracted.types";
 
-export type Conversation_flow = "intake" | "off_topic";
+export type Conversation_flow = "domain_detection" | "intake" | "off_topic";
 
 export type CompletionStatus =
   | "in_progress"      // đang hỏi tiếp

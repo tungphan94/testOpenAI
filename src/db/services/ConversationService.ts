@@ -1,6 +1,6 @@
 import { ConversationStateRepository, ConversationState } from '../repositories/ConversationStateRepository';
 
-export class MedicalIntakeService
+export class ConversationService
 {
     constructor(
         private stateRepo = new ConversationStateRepository(),
@@ -64,4 +64,4 @@ export class MedicalIntakeService
      }
 }
 
-export const medicalService = new MedicalIntakeService();
+export const conversationService = new ConversationService();
