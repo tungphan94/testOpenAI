@@ -15,7 +15,8 @@ exports.medicalLlmOutputJsonSchema = {
             "confirmed_fields",
             "ui_message",
             "completion_status",
-            "emergency_level"
+            "emergency_level",
+            "conversation_flow"
         ],
         properties: {
             patch: {
@@ -157,6 +158,10 @@ exports.medicalLlmOutputJsonSchema = {
             emergency_level: {
                 type: ["string", "null"],
                 enum: ["immediate", "urgent", "moderate", "null"]
+            },
+            conversation_flow: {
+                type: "string",
+                enum: ["intake", "off_topic",]
             },
         },
     },
