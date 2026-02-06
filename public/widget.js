@@ -5,9 +5,10 @@
       const scripts = document.getElementsByTagName("script");
       return scripts[scripts.length - 1];
     })();
-
+  
+  const domain = script.dataset.domain || ""  
   const tenant = script.dataset.tenant || "default";
-  const title = script.dataset.title || "医療受付サポート";
+  const title = script.dataset.title || "AIアシスタント";
   const apiBase = script.dataset.apiBase || "";
   const lang = script.dataset.lang || "ja";
 
@@ -17,6 +18,7 @@
   // widget.html nằm cùng thư mục với widget.js
   const baseUrl = new URL(script.src, window.location.href);
   const widgetHtmlUrl = new URL("./widget.html", baseUrl);
+  widgetHtmlUrl.searchParams.set("domain", domain);
   widgetHtmlUrl.searchParams.set("tenant", tenant);
   widgetHtmlUrl.searchParams.set("title", title);
   widgetHtmlUrl.searchParams.set("apiBase", apiBase);

@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import "dotenv/config";
-import { Content } from "openai/resources/containers/files.js";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -17,19 +16,6 @@ function isRetryable(err: any) {
   return /timeout|ECONNRESET|ENOTFOUND|EAI_AGAIN/i.test(String(err?.message));
 }
 
-export async function llmJsonTest(message: string)
-{
-  const model ="gpt-5-mini";
-  const res = await client.responses.create(
-        {
-          model,
-          input: [
-            { role: "user", content: message },
-          ],
-        },
-      );
-  return res.output_text;
-}
 /** Call LLM → JSON object */
 export async function llmJson<T>(
   system: string,
@@ -38,12 +24,9 @@ export async function llmJson<T>(
   opts?: { model?: string; timeoutMs?: number; retries?: number }
 ): Promise<T> {
   const model = opts?.model ?? "gpt-5-mini";
-  const timeoutMs = opts?.timeoutMs ?? 30_000;
   const retries = opts?.retries ?? 2;
   for (let i = 0; i <= retries; i++) {
     try {
-      // const ac = new AbortController();
-      // const t = setTimeout(() => ac.abort(), timeoutMs);
       const res = await client.responses.create(
         {
           model,
@@ -61,10 +44,7 @@ export async function llmJson<T>(
             }
           },
         },
-        // { signal: ac.signal }
       );
-
-      // clearTimeout(t);
       return JSON.parse(res.output_text ?? "{}") as T;
     } catch (e) {
       console.log(e);

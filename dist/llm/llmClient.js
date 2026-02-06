@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.llmJsonTest = llmJsonTest;
 exports.llmJson = llmJson;
 const openai_1 = __importDefault(require("openai"));
 require("dotenv/config");
@@ -21,25 +20,12 @@ function isRetryable(err) {
         return true;
     return /timeout|ECONNRESET|ENOTFOUND|EAI_AGAIN/i.test(String(err?.message));
 }
-async function llmJsonTest(message) {
-    const model = "gpt-5-mini";
-    const res = await client.responses.create({
-        model,
-        input: [
-            { role: "user", content: message },
-        ],
-    });
-    return res.output_text;
-}
 /** Call LLM → JSON object */
 async function llmJson(system, payload, response_schema, opts) {
     const model = opts?.model ?? "gpt-5-mini";
-    const timeoutMs = opts?.timeoutMs ?? 30000;
     const retries = opts?.retries ?? 2;
     for (let i = 0; i <= retries; i++) {
         try {
-            // const ac = new AbortController();
-            // const t = setTimeout(() => ac.abort(), timeoutMs);
             const res = await client.responses.create({
                 model,
                 service_tier: "priority",
@@ -56,7 +42,6 @@ async function llmJson(system, payload, response_schema, opts) {
                     }
                 },
             });
-            // clearTimeout(t);
             return JSON.parse(res.output_text ?? "{}");
         }
         catch (e) {

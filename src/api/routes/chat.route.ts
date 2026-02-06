@@ -1,7 +1,12 @@
 import { Router } from "express";
-import * as chatController from "../controllers/chat.controller";
+import {createChatController} from "../controllers/chat.controller";
+import { SessionManager } from "../../llm/services/sessionManager";
 
 const router = Router();
-router.post("/chat", chatController.chat);
-
+export function createChatRouter(sessionMgr: SessionManager) {
+  const router = Router();
+  const chatController = createChatController(sessionMgr);
+  router.post("/chat", chatController.chat);
+  return router;
+}
 export default router;

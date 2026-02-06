@@ -1,10 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildPayload = buildPayload;
-function buildPayload(message, state, last_question, order) {
+exports.builDomainAnalysisPayload = builDomainAnalysisPayload;
+exports.buildIntakePayload = buildIntakePayload;
+function builDomainAnalysisPayload(message) {
     return {
         user_message: message,
-        last_question: last_question,
+        state_digest: null,
+        rules: null,
+    };
+}
+function buildIntakePayload(message, state, order) {
+    return {
+        user_message: message,
         state_digest: {
             confirmed: state?.state_digest ?? {},
             confirmed_fields: state?.confirmed_fields ?? [],
@@ -12,7 +19,8 @@ function buildPayload(message, state, last_question, order) {
         },
         rules: {
             order,
-            only_ask_from_intake: true,
+            must_return_to_intake: true,
+            max_off_topic_turns: 2,
             return_confirmed_fields: true,
         },
     };

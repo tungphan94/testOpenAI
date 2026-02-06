@@ -1,35 +1,3 @@
-import { MedicalStateV1 } from "./medical.extracted.types";
-
-type CompletionStatus =
-  | "in_progress"      // đang hỏi tiếp
-  | "completed"        // hoàn tất bình thường
-  | "emergency_stop"   // dừng do cấp cứu
-  | "handoff_required" // cần nhân viên tiếp nhận
-  | "error";           // lỗi hệ thống / fallback
-
-type EmergencyLevel =
-  | "immediate"   // gọi cấp cứu NGAY
-  | "urgent"      // cần khám gấp (hôm nay)
-  | "moderate";   // có nguy cơ, theo dõi sớm
-
-export interface MedicalLlmOutput {
-  patch: PatchOp<MedicalStateV1>[];
-  next_question: string | null;
-  next_question_field: string | null;
-  staff_note: string | null;
-  confirmed_fields?: string[];
-  ui_message: string | null;
-  completion_status: CompletionStatus;
-  emergency_level: EmergencyLevel
-}
-
-export type PatchOp<T> =
-  | {op: "set";path: string; value: unknown;}
-  | {op: "upsert"; path: "/symptoms"; key: "canonical"; value: unknown; }
-  | {op: "remove";path: string; reason?: "user_denial" | "retracted"}
-  | {op: "overwrite";path: string;value: unknown;}
-
-
 export const medicalLlmOutputJsonSchema = {
   name: "medical_llm_output",
   strict: true,
@@ -43,8 +11,6 @@ export const medicalLlmOutputJsonSchema = {
       "staff_note",
       "confirmed_fields",
       "ui_message",
-      "completion_status",
-      "emergency_level"
     ],
     properties: {
       patch: {
@@ -176,20 +142,6 @@ export const medicalLlmOutputJsonSchema = {
           },
       },
       ui_message: {type: [ "string","null"] },
-      completion_status: {
-        type: "string",
-        enum: [
-          "in_progress",
-          "completed",
-          "emergency_stop",
-          "handoff_required",
-          "error",
-        ]
-      },
-      emergency_level: {
-        type: ["string", "null"],
-        enum: ["immediate", "urgent", "moderate", "null"]
-      },
     },
   },
 } as const;

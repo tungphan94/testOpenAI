@@ -14,8 +14,6 @@ exports.medicalLlmOutputJsonSchema = {
             "staff_note",
             "confirmed_fields",
             "ui_message",
-            "completion_status",
-            "emergency_level"
         ],
         properties: {
             patch: {
@@ -144,20 +142,6 @@ exports.medicalLlmOutputJsonSchema = {
                 },
             },
             ui_message: { type: ["string", "null"] },
-            completion_status: {
-                type: "string",
-                enum: [
-                    "in_progress",
-                    "completed",
-                    "emergency_stop",
-                    "handoff_required",
-                    "error",
-                ]
-            },
-            emergency_level: {
-                type: ["string", "null"],
-                enum: ["immediate", "urgent", "moderate", "null"]
-            },
         },
     },
 };
