@@ -4,6 +4,7 @@ exports.ChatService = exports.FndOutputItem = exports.MedicalOutputItem = export
 const ConversationService_1 = require("../db/services/ConversationService");
 const medicalLlmOutput_1 = require("../domain/medical/medicalLlmOutput");
 const DomainClassifierService_1 = require("../llm/services/DomainClassifierService");
+const sessionManager_1 = require("../llm/services/sessionManager");
 const payload_1 = require("../domain/payload");
 const medical_intake_order_1 = require("../domain/medical/medical_intake_order");
 const intake_service_1 = require("../llm/services/intake.service");
@@ -52,7 +53,6 @@ class FndOutputItem extends OutputItem {
         super(message);
         this.state = state;
         this.know_state = null;
-        // this.know_state = null;buildStateKnow(this.state);
     }
     buildSchema() {
         return fnd_llm_output_1.food_drink_llm_outputJsonChema;
@@ -93,7 +93,17 @@ class ChatService {
     constructor(sessionMgr) {
         this.sessionMgr = sessionMgr;
     }
-    async handlMedicalMessage(input) {
+    updateSesstionState(session, llm_output) {
+        if (llm_output === null) {
+            return;
+        }
+        if (!(0, buildStateKnow_1.isStringOrNull)(llm_output.next_question_field)) {
+            session.next_question_field = llm_output.next_question_field;
+            session.off_topic_streak = 0;
+        }
+        else {
+            session.off_topic_streak++;
+        }
     }
     async handleMessage(input) {
         const analysis_domain = await (0, DomainClassifierService_1.call_message_analysis_llm)(input.domain, input.message);
@@ -105,7 +115,8 @@ class ChatService {
         }
         const session = this.sessionMgr.getOrDefault(input.tenant_id, input.conversation_id);
         session.domain = analysis_domain?.domain ?? "unknown";
-        session.intent = analysis_domain?.intent ?? null;
+        session.intent = analysis_domain?.intent ?? "information";
+        (0, sessionManager_1.addTurn)(session, "user", input.message);
         const item = await createOutputItem(input.message, session);
         const res = await item?.callLlm();
         if (!res) {
@@ -115,6 +126,8 @@ class ChatService {
             };
         }
         const [llm_output, chat_response] = res;
+        (0, sessionManager_1.addTurn)(session, "assistant", chat_response?.message ?? "");
+        this.updateSesstionState(session, llm_output);
         return {
             status: 200,
             body: chat_response,

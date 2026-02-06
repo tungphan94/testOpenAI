@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionManager = exports.DEFAULT_SESSION_STATE = void 0;
+exports.addTurn = addTurn;
 exports.DEFAULT_SESSION_STATE = {
     tenant_id: "",
-    domain: null,
-    intent: null,
+    domain: "unknown",
+    intent: "information",
     conversation_id: "",
     next_question_field: null,
     off_topic_streak: 0,
@@ -14,6 +15,15 @@ exports.DEFAULT_SESSION_STATE = {
     max_turns: 50,
     domain_state: {},
 };
+function addTurn(session, role, text) {
+    const domain = session.domain;
+    const intent = session.intent;
+    session.turns.push({ role, text, ts: Date.now(), domain, intent });
+    const max = session.max_turns ?? 20;
+    if (session.turns.length > max) {
+        session.turns.splice(0, session.turns.length - max);
+    }
+}
 class SessionManager {
     constructor(opts = {}) {
         this.sessions = new Map();

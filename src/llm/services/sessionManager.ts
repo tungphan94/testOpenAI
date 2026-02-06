@@ -11,8 +11,8 @@ type SessionTurn = {
 
 export type SessionState = {
   tenant_id: string;
-  domain: DomainApp | null; //linh vuc
-  intent: string | null; //HÀNH VI 
+  domain: DomainApp; //linh vuc
+  intent: CommonIntent; //HÀNH VI 
   conversation_id: string;
   next_question_field: string | null;
   off_topic_streak: number; //Số lần liên tiếp user đi ngoài mục tiêu chính của flow hiện tại
@@ -29,8 +29,8 @@ export type SessionState = {
 
 export const DEFAULT_SESSION_STATE: SessionState = {
   tenant_id: "",
-  domain: null,
-  intent: null,
+  domain: "unknown",
+  intent: "information",
   conversation_id: "",
   next_question_field: null,
   off_topic_streak: 0,
@@ -41,13 +41,15 @@ export const DEFAULT_SESSION_STATE: SessionState = {
   domain_state: {},
 };
 
-// function addTurn(session: SessionState, role: "user" | "assistant", text: string) {
-//   session.turns.push({ role, text, ts: Date.now() });
-//   const max = session.max_turns ?? 20;
-//   if (session.turns.length > max) {
-//     session.turns.splice(0, session.turns.length - max);
-//   }
-// }
+export function addTurn(session: SessionState, role: "user" | "assistant", text: string) {
+  const domain = session.domain;
+  const intent = session.intent;
+  session.turns.push({ role, text, ts: Date.now(),domain,  intent});
+  const max = session.max_turns ?? 20;
+  if (session.turns.length > max) {
+    session.turns.splice(0, session.turns.length - max);
+  }
+}
 
 type SessionManagerOptions = {
   ttlMs?: number;              // default 30m

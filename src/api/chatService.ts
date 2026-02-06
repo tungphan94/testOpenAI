@@ -2,7 +2,7 @@ import { ConversationState } from '../db/repositories/ConversationStateRepositor
 import { conversationService } from '../db/services/ConversationService';
 import { medicalLlmOutputJsonSchema } from "../domain/medical/medicalLlmOutput";
 import { call_message_analysis_llm } from '../llm/services/DomainClassifierService';
-import { SessionManager, SessionState } from '../llm/services/sessionManager';
+import { addTurn, SessionManager, SessionState } from '../llm/services/sessionManager';
 import { buildIntakePayload, LlmPayload } from '../domain/payload';
 import { MedicalStateV1 } from '../domain/medical/medical.extracted.types';
 import { INTAKE_ORDER } from '../domain/medical/medical_intake_order';
@@ -12,7 +12,7 @@ import { IntakeContext, LlmOutput } from '../domain/llm_output';
 import { FndStateV1 } from '../domain/food_drink/fnd.extracted.types';
 import { food_drink_llm_outputJsonChema } from '../domain/food_drink/fnd_llm_output';
 import { FND_INTAKE_ORDER, FOOD_BOOKING_ORDER } from '../domain/food_drink/food_drink_order';
-import { buildStateKnow } from '../domain/buildStateKnow';
+import { buildStateKnow, isStringOrNull } from '../domain/buildStateKnow';
 import { medical_buildStateKnowFromDb, medical_pickConfirmedState } from '../domain/medical/medical_buildStateKnow';
 
 
@@ -66,8 +66,6 @@ export class FndOutputItem extends OutputItem<LlmOutput<FndStateV1>>
    constructor(private readonly  state: ConversationState | null,  message :string ) {
         super(message);
         this.know_state = null;
-        
-        // this.know_state = null;buildStateKnow(this.state);
     } 
     override buildSchema() {
         return food_drink_llm_outputJsonChema;
@@ -117,14 +115,17 @@ async function  createOutputItem(
 export class ChatService {
   constructor(private sessionMgr: SessionManager) {}
 
-
-  async handlMedicalMessage(input :{
-    tenant_id: string;
-    intent :string;
-    conversation_id: string;
-    message: string}) 
+  private updateSesstionState(session : SessionState,  llm_output : LlmOutput<any> | null)
   {
-
+    if(llm_output === null){
+        return;
+    }
+    if(!isStringOrNull(llm_output.next_question_field)) {
+        session.next_question_field = llm_output.next_question_field;
+        session.off_topic_streak = 0;
+    }else{
+        session.off_topic_streak++;
+    }
   }
 
   async handleMessage(input: {
@@ -142,7 +143,8 @@ export class ChatService {
     }
     const session = this.sessionMgr.getOrDefault(input.tenant_id, input.conversation_id);
     session.domain = analysis_domain?.domain?? "unknown";
-    session.intent = analysis_domain?.intent ?? null;
+    session.intent = analysis_domain?.intent ?? "information";
+    addTurn(session, "user", input.message);    
     const item = await createOutputItem(input.message,session);
     const res =  await item?.callLlm();
     if(!res){
@@ -152,11 +154,12 @@ export class ChatService {
         };
     }
     const [llm_output, chat_response] = res;
+    addTurn(session, "assistant", chat_response?.message??"");
+    this.updateSesstionState(session, llm_output);
     return {
             status: 200,
             body: chat_response,
         }; 
-
     // const res = await item?.call_llm();
 
 
