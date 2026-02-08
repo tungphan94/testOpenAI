@@ -1,4 +1,7 @@
 import {CommonIntent, DomainApp, MedicalIntent, FoodDrinkIntent,RealEstateIntent, DomainAnalysisResponse} from "../../domain/domain_analysis"
+import { createDefaultFndContext, FndStateV1 } from "../../domain/food_drink/fnd.extracted.types";
+import { CommonContext } from "../../domain/llm_output";
+import { createDefaultMedicalContext, MedicalStateV1 } from "../../domain/medical/medical.extracted.types";
 
 type SessionTurn = {
   role: "user" | "assistant";
@@ -8,11 +11,148 @@ type SessionTurn = {
   intent: CommonIntent
 };
 
+export type FlowStatus =
+  | "idle"          // chưa dùng
+  | "collecting"    // đang hỏi để đủ điều kiện
+  | "ready"         // đủ điều kiện để chạy search
+  | "in_progress"   // đang gọi service
+  | "done"          // có kết quả
+  | "error";        // lỗi
+
+export type SearchSlotKey =
+  | "keyword"        // từ khóa: "da liễu", "nhà hàng Nhật", "2LDK"...
+  | "region"         // vùng: Osaka, Tokyo...
+  | "location_detail"// chi tiết: Umeda, tên ga, quận, địa chỉ gần đúng
+  | "radius_m"       // bán kính nếu cần
+  | "datetime"       // thời gian (booking/search theo giờ)
+  | "party_size"     // số người
+  | "budget"
+  | "other";
+
+// export type SearchSlot = {
+//   key: SearchSlotKey | string;   // cho phép domain thêm key riêng
+//   prompt: string;                // câu hỏi gợi ý để hỏi user (UI/LLM dùng)
+//   value: any;                    // giá trị đã có
+//   required?: boolean;            // slot bắt buộc
+//   confidence?: number;           // optional: độ tin cậy 0..1
+//   source?: "user" | "llm" | "system";
+// };  
+
+// export type SearchResultItem = {
+//   id: string;              // stable id (hash/uuid)
+//   title: string;           // tên bệnh viện/quán/nhà...
+//   address?: string;
+//   phone?: string;
+//   url?: string;
+//   distance_m?: number;
+//   meta?: Record<string, any>;
+// };
+
+// export type SearchSnapshot = {
+//   query_key: string;     // hash/serialize từ slots (hoặc criteria)
+//   items: SearchResultItem[];
+//   cursor?: string | null;
+//   total_estimated?: number;
+//   fetched_at: number;    // epoch ms
+// };
+
+// export type SearchState = {
+//   status: FlowStatus;
+//   // slots là “tổng quát nhất”: bạn không cần generic <TCriteria> nữa
+//   // vì mọi domain đều quy về slot (keyword, region, location_detail, ...)
+//   slots: Record<string, SearchSlot>;
+//   // system quyết định slot nào cần hỏi tiếp
+//   next_slot_key: string | null;
+//   // snapshot kết quả gần nhất
+//   results: SearchSnapshot | null;
+//   // user chọn item nào trong results
+//   selected_id: string | null;
+//   // debug
+//   last_error?: string | null;
+// };
+
+  
+
+
+export type SearchState =
+{
+  domain?: string,
+  intent?: string,
+  action?: string,
+  city?: string | null;
+  place?:string | null,
+  facility_type?:string | null,
+  specialty?:string|null,
+  radius_meters?:string | null,
+  missing_fields?:[],
+  next_question?:string | null;
+  include?:string[] |null;
+}
+
+export function createDefaultSearchState(): SearchState {
+  return {
+  };
+}
+
+export type MedicalDomainState = {
+  intake: CommonContext<MedicalStateV1>;
+  search: SearchState;
+  // booking: {
+  //   status: FlowStatus;
+  //   selected_facility_id: string | null;      // lấy từ search.selected_id
+  //   datetime?: string | null;
+  //   patient_name?: string | null;
+  //   phone?: string | null;
+  //   next_question_field: string | null;
+  // };
+}
+
+export type FoodDrinkDomainState = {
+  intake: CommonContext<FndStateV1>
+  search: SearchState;
+  // booking: {
+  //   status: FlowStatus;
+  //   selected_restaurant_id: string | null;
+  //   datetime?: string | null;
+  //   party_size?: number | null;
+  //   name?: string | null;
+  //   phone?: string | null;
+  //   next_question_field: string | null;
+  // };
+};
+
+export type RealEstateDomainState = {
+  search: SearchState;
+  // contact: {
+  //   status: FlowStatus;
+  //   selected_property_id: string | null;
+  //   name?: string | null;
+  //   phone?: string | null;
+  //   next_question_field: string | null;
+  // };
+};
+
+function createDefaultMedicalDomainState() : MedicalDomainState
+{
+  return {
+    intake: createDefaultMedicalContext(),
+    search: createDefaultSearchState(),
+  }
+}
+
+function createDefaultFoodDrinkDomainState() : FoodDrinkDomainState
+{
+  return {
+    intake: createDefaultFndContext(),
+    search: createDefaultSearchState(),
+  }
+}
 
 export type SessionState = {
   tenant_id: string;
   domain: DomainApp; //linh vuc
   intent: CommonIntent; //HÀNH VI 
+  last_intent:CommonIntent;
   conversation_id: string;
   next_question_field: string | null;
   off_topic_streak: number; //Số lần liên tiếp user đi ngoài mục tiêu chính của flow hiện tại
@@ -21,9 +161,9 @@ export type SessionState = {
   max_turns: number;
   updated_at: number;
   domain_state: {
-    medical?: any;
-    restaurant?: any;
-    real_estate?: any;
+    medical: MedicalDomainState;
+    food_drink: FoodDrinkDomainState;
+    real_estate: RealEstateDomainState | null;
   };
 };
 
@@ -31,6 +171,7 @@ export const DEFAULT_SESSION_STATE: SessionState = {
   tenant_id: "",
   domain: "unknown",
   intent: "information",
+  last_intent:"information",
   conversation_id: "",
   next_question_field: null,
   off_topic_streak: 0,
@@ -38,7 +179,11 @@ export const DEFAULT_SESSION_STATE: SessionState = {
   updated_at: Date.now(),
   turns: [],
   max_turns: 50,
-  domain_state: {},
+  domain_state: {
+      medical: createDefaultMedicalDomainState(),
+      food_drink: createDefaultFoodDrinkDomainState(),
+      real_estate: null,
+  },
 };
 
 export function addTurn(session: SessionState, role: "user" | "assistant", text: string) {
@@ -88,6 +233,10 @@ export class SessionManager {
         s.updated_at = Date.now();
     }
     return s;
+  }
+  update(session: SessionState)
+  {
+    this.sessions.set(this.key(session.tenant_id, session.conversation_id), session);
   }
 
   /** Update "last active" time */

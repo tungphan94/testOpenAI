@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.medicalLlmOutputJsonSchema = void 0;
-exports.medicalLlmOutputJsonSchema = {
-    name: "medical_llm_output",
+exports.medicalLlmIntakeOutputJsonSchema = void 0;
+exports.medicalLlmIntakeOutputJsonSchema = {
+    name: "medical_llm_intake_output",
     strict: true,
     schema: {
         type: "object",
@@ -13,7 +13,8 @@ exports.medicalLlmOutputJsonSchema = {
             "next_question_field",
             "staff_note",
             "confirmed_fields",
-            "ui_message",
+            "message",
+            // "specialty"
         ],
         properties: {
             patch: {
@@ -141,7 +142,8 @@ exports.medicalLlmOutputJsonSchema = {
                     ],
                 },
             },
-            ui_message: { type: ["string", "null"] },
+            message: { type: ["string", "null"] },
+            // specialty:{type: ["string", "null"]}
         },
     },
 };

@@ -19,7 +19,7 @@ function isRetryable(err: any) {
 /** Call LLM → JSON object */
 export async function llmJson<T>(
   system: string,
-  payload: unknown,
+  payload: any,
   response_schema:object,
   opts?: { model?: string; timeoutMs?: number; retries?: number }
 ): Promise<T> {
@@ -30,7 +30,7 @@ export async function llmJson<T>(
       const res = await client.responses.create(
         {
           model,
-          service_tier: "priority",
+          // service_tier: "priority",
           input: [
             { role: "system", content: system },
             { role: "user", content: JSON.stringify(payload) },

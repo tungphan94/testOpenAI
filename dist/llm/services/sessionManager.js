@@ -1,11 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionManager = exports.DEFAULT_SESSION_STATE = void 0;
+exports.createDefaultSearchState = createDefaultSearchState;
 exports.addTurn = addTurn;
+const fnd_extracted_types_1 = require("../../domain/food_drink/fnd.extracted.types");
+const medical_extracted_types_1 = require("../../domain/medical/medical.extracted.types");
+function createDefaultSearchState() {
+    return {};
+}
+function createDefaultMedicalDomainState() {
+    return {
+        intake: (0, medical_extracted_types_1.createDefaultMedicalContext)(),
+        search: createDefaultSearchState(),
+    };
+}
+function createDefaultFoodDrinkDomainState() {
+    return {
+        intake: (0, fnd_extracted_types_1.createDefaultFndContext)(),
+        search: createDefaultSearchState(),
+    };
+}
 exports.DEFAULT_SESSION_STATE = {
     tenant_id: "",
     domain: "unknown",
     intent: "information",
+    last_intent: "information",
     conversation_id: "",
     next_question_field: null,
     off_topic_streak: 0,
@@ -13,7 +32,11 @@ exports.DEFAULT_SESSION_STATE = {
     updated_at: Date.now(),
     turns: [],
     max_turns: 50,
-    domain_state: {},
+    domain_state: {
+        medical: createDefaultMedicalDomainState(),
+        food_drink: createDefaultFoodDrinkDomainState(),
+        real_estate: null,
+    },
 };
 function addTurn(session, role, text) {
     const domain = session.domain;
@@ -49,6 +72,9 @@ class SessionManager {
             s.updated_at = Date.now();
         }
         return s;
+    }
+    update(session) {
+        this.sessions.set(this.key(session.tenant_id, session.conversation_id), session);
     }
     /** Update "last active" time */
     touch(tenant_id, conversation_id) {

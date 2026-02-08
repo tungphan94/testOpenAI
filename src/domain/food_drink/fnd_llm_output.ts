@@ -1,8 +1,7 @@
 import { PatchOp } from "../llm_output";
-import { FndStateV1 } from "./fnd.extracted.types";
 
 export interface FndLlmOutput {
-  patch: PatchOp<FndStateV1>[];
+  patch: PatchOp[];
   next_question: string | null;
   next_question_field: string | null;
   staff_note: string | null;

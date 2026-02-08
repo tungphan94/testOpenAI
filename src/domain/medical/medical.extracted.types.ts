@@ -1,3 +1,4 @@
+import { CommonContext } from '../llm_output';
 export type Conversation_flow = "domain_detection" | "intake" | "off_topic";
 
 export type CompletionStatus =
@@ -30,4 +31,26 @@ export type MedicalStateV1 = {
   allergies: string | null;
   red_flags: RedFlags  | null;
 };
+
+export function createDefauleMedicalStateV1() : MedicalStateV1
+{
+  return {
+    chief_complaint: null,
+    symptoms: [],
+    onset_time:null,
+    past_history:null,
+    medications:null,
+    allergies:null,
+    red_flags:null,
+  }
+}
+
+export function createDefaultMedicalContext(): CommonContext<MedicalStateV1>
+{
+  return {
+    state_digest: createDefauleMedicalStateV1(),
+    confirmed_fields:[],
+    last_question_field:null
+  }
+}
 

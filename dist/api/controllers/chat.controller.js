@@ -17,7 +17,6 @@ function createChatController(sessionMgr) {
                     message,
                     domain,
                 });
-                console.log(result);
                 return res.status(result.status).json(result.body);
             }
             catch (err) {

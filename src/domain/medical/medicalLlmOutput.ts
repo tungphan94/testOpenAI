@@ -1,5 +1,5 @@
-export const medicalLlmOutputJsonSchema = {
-  name: "medical_llm_output",
+export const medicalLlmIntakeOutputJsonSchema = {
+  name: "medical_llm_intake_output",
   strict: true,
   schema: {
     type: "object",
@@ -10,7 +10,8 @@ export const medicalLlmOutputJsonSchema = {
       "next_question_field",
       "staff_note",
       "confirmed_fields",
-      "ui_message",
+      "message",
+      // "specialty"
     ],
     properties: {
       patch: {
@@ -141,10 +142,13 @@ export const medicalLlmOutputJsonSchema = {
             ],
           },
       },
-      ui_message: {type: [ "string","null"] },
+      message: {type: [ "string","null"] },
+      // specialty:{type: ["string", "null"]}
     },
   },
 } as const;
+
+
 
 
 

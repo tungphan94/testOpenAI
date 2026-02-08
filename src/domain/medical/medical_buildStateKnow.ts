@@ -1,6 +1,6 @@
 import { ConversationState } from "../../db/repositories/ConversationStateRepository";
 import { isBoolean, isPlainObject, isStringOrNull } from "../buildStateKnow";
-import { IntakeContext, PatchOp } from "../llm_output";
+import { CommonContext, PatchOp } from "../llm_output";
 import { MedicalStateV1, MedicalSymptom, RedFlags } from "./medical.extracted.types";
 
 export function normalizeState(raw: Partial<MedicalStateV1> | null | undefined): MedicalStateV1 {
@@ -71,9 +71,9 @@ export function medical_pickConfirmedState(
   return out;
 }
 
-export function applyPatch(
+export function applyMedicalIntakePatch(
   state: MedicalStateV1,
-  patch: PatchOp<MedicalStateV1>[]
+  patch: PatchOp[]
 ): MedicalStateV1
 {
   const next = structuredClone(state);
@@ -146,25 +146,13 @@ export function applyPatch(
   return next;
 }
 
-export function createEmptyMedicalStateV1(): MedicalStateV1 {
-  return {
-    chief_complaint: null,
-    symptoms: [],
-    onset_time: null,
-    past_history: null,
-    medications: null,
-    allergies: null,
-    red_flags: null,
-  };
-}
-
 export function medical_buildStateKnowFromDb(row: ConversationState | null): MedicalStateV1 {    
   const ex = row?.extracted;
   const raw = isPlainObject(ex) ? (ex as Partial<MedicalStateV1>) : undefined;
   return normalizeState(raw);
 }
 
-export function medical_buildStateKnow(row: ConversationState | null) : IntakeContext<MedicalStateV1> | null
+export function medical_buildStateKnow(row: ConversationState | null) : CommonContext<MedicalStateV1> | null
 {
     if(row == null){
       return null

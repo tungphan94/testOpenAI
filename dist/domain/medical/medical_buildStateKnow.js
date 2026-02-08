@@ -4,8 +4,7 @@ exports.normalizeState = normalizeState;
 exports.isMedicalSymptom = isMedicalSymptom;
 exports.ensureRedFlags = ensureRedFlags;
 exports.medical_pickConfirmedState = medical_pickConfirmedState;
-exports.applyPatch = applyPatch;
-exports.createEmptyMedicalStateV1 = createEmptyMedicalStateV1;
+exports.applyMedicalIntakePatch = applyMedicalIntakePatch;
 exports.medical_buildStateKnowFromDb = medical_buildStateKnowFromDb;
 exports.medical_buildStateKnow = medical_buildStateKnow;
 const buildStateKnow_1 = require("../buildStateKnow");
@@ -75,7 +74,7 @@ function medical_pickConfirmedState(state, confirmed) {
     }
     return out;
 }
-function applyPatch(state, patch) {
+function applyMedicalIntakePatch(state, patch) {
     const next = structuredClone(state);
     for (const p of patch) {
         if (p.op === "remove") {
@@ -147,17 +146,6 @@ function applyPatch(state, patch) {
         }
     }
     return next;
-}
-function createEmptyMedicalStateV1() {
-    return {
-        chief_complaint: null,
-        symptoms: [],
-        onset_time: null,
-        past_history: null,
-        medications: null,
-        allergies: null,
-        red_flags: null,
-    };
 }
 function medical_buildStateKnowFromDb(row) {
     const ex = row?.extracted;

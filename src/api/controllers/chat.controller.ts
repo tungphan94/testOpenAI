@@ -21,7 +21,6 @@ export function createChatController(sessionMgr: SessionManager) {
           message,
           domain,
         });
-        console.log(result);
         return res.status(result.status).json(result.body);
       } catch (err) {
         console.error(err);
